@@ -1,5 +1,6 @@
 package github.com.ifyosakwe.clippy.controller;
 
+import github.com.ifyosakwe.clippy.service.SecurityUtils;
 import github.com.ifyosakwe.clippy.service.ShortUrlService;
 import jakarta.validation.Valid;
 
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import github.com.ifyosakwe.clippy.config.ApplicationProperties;
+import github.com.ifyosakwe.clippy.entity.User;
 import github.com.ifyosakwe.clippy.exception.ShortUrlNotFoundException;
 import github.com.ifyosakwe.clippy.model.CreateShortUrlCmd;
 import github.com.ifyosakwe.clippy.model.CreateShortUrlForm;
@@ -25,14 +27,21 @@ import github.com.ifyosakwe.clippy.model.ShortUrlDto;
 public class HomeController {
     private final ShortUrlService shortUrlService;
     private final ApplicationProperties properties;
+    private final SecurityUtils securityUtils;
 
-    public HomeController(ShortUrlService shortUrlService, ApplicationProperties properties) {
+    public HomeController(
+            ShortUrlService shortUrlService,
+            ApplicationProperties properties,
+            SecurityUtils securityUtils) {
         this.shortUrlService = shortUrlService;
         this.properties = properties;
+        this.securityUtils = securityUtils;
     }
 
     @GetMapping("/")
     public String home(Model model) {
+         User currentUser = securityUtils.getCurrentUser();
+        
         List<ShortUrlDto> shortUrls = shortUrlService.findAllPublicShortUrls();
         model.addAttribute("shortUrls", shortUrls);
         model.addAttribute("baseUrl", properties.baseUrl());
@@ -73,6 +82,11 @@ public class HomeController {
         }
         ShortUrlDto shortUrlDto = shortUrlDtoOptional.get();
         return "redirect:" + shortUrlDto.originalUrl();
+    }
+
+    @GetMapping("/login")
+    String loginForm() {
+        return "login";
     }
 
 }

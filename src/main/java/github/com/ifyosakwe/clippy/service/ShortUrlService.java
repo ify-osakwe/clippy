@@ -6,13 +6,19 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import github.com.ifyosakwe.clippy.config.ApplicationProperties;
 import github.com.ifyosakwe.clippy.entity.ShortUrl;
 import github.com.ifyosakwe.clippy.model.CreateShortUrlCmd;
 import github.com.ifyosakwe.clippy.model.EntityMapper;
+import github.com.ifyosakwe.clippy.model.PagedResult;
 import github.com.ifyosakwe.clippy.model.ShortUrlDto;
 import github.com.ifyosakwe.clippy.repository.ShortUrlRepository;
 import github.com.ifyosakwe.clippy.repository.UserRepository;
@@ -47,9 +53,18 @@ public class ShortUrlService {
     // .stream().map(entityMapper::toShortUrlDto).toList();
     // }
 
-    public List<ShortUrlDto> findAllPublicShortUrls() {
-        return shortUrlRepository.findPublicShortUrls()
-                .stream().map(entityMapper::toShortUrlDto).toList();
+    // public List<ShortUrlDto> findAllPublicShortUrls() {
+    // return shortUrlRepository.findPublicShortUrls()
+    // .stream().map(entityMapper::toShortUrlDto).toList();
+    // }
+
+    public PagedResult<ShortUrlDto> findAllPublicShortUrls(int pageNo, int pageSize) {
+        pageNo = pageNo > 1 ? pageNo - 1 : 0;
+        Pageable pageable = PageRequest.of(pageNo, pageSize,
+                Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<ShortUrlDto> shortUrlDtoPage = shortUrlRepository.findPublicShortUrls(pageable)
+                .map(entityMapper::toShortUrlDto);
+        return PagedResult.from(shortUrlDtoPage);
     }
 
     @Transactional

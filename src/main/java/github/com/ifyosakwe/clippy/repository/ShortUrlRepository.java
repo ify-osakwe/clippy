@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import github.com.ifyosakwe.clippy.entity.ShortUrl;
@@ -23,5 +24,13 @@ public interface ShortUrlRepository extends JpaRepository<ShortUrl, Long> {
 
     @Query("select su from ShortUrl su left join fetch su.createdBy where su.isPrivate = false")
     Page<ShortUrl> findPublicShortUrls(Pageable pageable);
+
+    @Modifying
+    void deleteByIdInAndCreatedById(List<Long> ids, Long userId);
+
+    @Query("select u from ShortUrl u left join fetch u.createdBy")
+    Page<ShortUrl> findAllShortUrls(Pageable pageable);
+
+    Page<ShortUrl> findByCreatedById(Long userId, Pageable pageable);
 
 }

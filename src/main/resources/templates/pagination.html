@@ -4,7 +4,11 @@
       class="page-item"
       th:classappend="${shortUrls.isFirst ? 'disabled' : ''}"
     >
-      <a class="page-link" th:href="@{/(page=1)}" aria-label="First">
+      <a
+        class="page-link"
+        th:href="@{${paginationUrl}(page=1)}"
+        aria-label="First"
+      >
         <span aria-hidden="true">First</span>
       </a>
     </li>
@@ -14,7 +18,7 @@
     >
       <a
         class="page-link"
-        th:href="@{/(page=${shortUrls.pageNumber - 1})}"
+        th:href="@{${paginationUrl}(page=${shortUrls.pageNumber - 1})}"
         aria-label="Previous"
       >
         <span aria-hidden="true">Previous</span>
@@ -35,7 +39,7 @@
     >
       <a
         class="page-link"
-        th:href="@{/(page=${shortUrls.pageNumber + 1})}"
+        th:href="@{${paginationUrl}(page=${shortUrls.pageNumber + 1})}"
         aria-label="Next"
       >
         <span aria-hidden="true">Next</span>
@@ -47,7 +51,7 @@
     >
       <a
         class="page-link"
-        th:href="@{/(page=${shortUrls.totalPages})}"
+        th:href="@{${paginationUrl}(page=${shortUrls.totalPages})}"
         aria-label="Last"
       >
         <span aria-hidden="true">Last</span>

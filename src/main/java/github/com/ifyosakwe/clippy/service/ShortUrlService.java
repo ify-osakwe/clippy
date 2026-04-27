@@ -10,7 +10,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
@@ -48,16 +47,6 @@ public class ShortUrlService {
         this.userRepository = userRepository;
     }
 
-    // public List<ShortUrlDto> getPublicShortUrls() {
-    // return shortUrlRepository.findPublicShortUrls()
-    // .stream().map(entityMapper::toShortUrlDto).toList();
-    // }
-
-    // public List<ShortUrlDto> findAllPublicShortUrls() {
-    // return shortUrlRepository.findPublicShortUrls()
-    // .stream().map(entityMapper::toShortUrlDto).toList();
-    // }
-
     public PagedResult<ShortUrlDto> findAllPublicShortUrls(int pageNo, int pageSize) {
         pageNo = pageNo > 1 ? pageNo - 1 : 0;
         Pageable pageable = PageRequest.of(pageNo, pageSize,
@@ -65,6 +54,12 @@ public class ShortUrlService {
         Page<ShortUrlDto> shortUrlDtoPage = shortUrlRepository.findPublicShortUrls(pageable)
                 .map(entityMapper::toShortUrlDto);
         return PagedResult.from(shortUrlDtoPage);
+    }
+
+    public PagedResult<ShortUrlDto> findAllShortUrls(int page, int pageSize) {
+        Pageable pageable = getPageable(page, pageSize);
+        var shortUrlsPage = shortUrlRepository.findAllShortUrls(pageable).map(entityMapper::toShortUrlDto);
+        return PagedResult.from(shortUrlsPage);
     }
 
     @Transactional
@@ -114,7 +109,21 @@ public class ShortUrlService {
         return shortUrlOptional.map(entityMapper::toShortUrlDto);
     }
 
-    public static String generateRandomShortKey() {
+    @Transactional
+    public void deleteUserShortUrls(List<Long> ids, Long userId) {
+        if (ids != null && !ids.isEmpty() && userId != null) {
+            shortUrlRepository.deleteByIdInAndCreatedById(ids, userId);
+        }
+    }
+
+    public PagedResult<ShortUrlDto> getUserShortUrls(Long userId, int page, int pageSize) {
+        Pageable pageable = getPageable(page, pageSize);
+        var shortUrlsPage = shortUrlRepository.findByCreatedById(userId, pageable)
+                .map(entityMapper::toShortUrlDto);
+        return PagedResult.from(shortUrlsPage);
+    }
+
+    private static String generateRandomShortKey() {
         StringBuilder sb = new StringBuilder(SHORT_KEY_LENGTH);
         for (int i = 0; i < SHORT_KEY_LENGTH; i++) {
             sb.append(CHARACTERS.charAt(RANDOM.nextInt(CHARACTERS.length())));
@@ -128,6 +137,11 @@ public class ShortUrlService {
             shortKey = generateRandomShortKey();
         } while (shortUrlRepository.existsByShortKey(shortKey));
         return shortKey;
+    }
+
+    private Pageable getPageable(int page, int size) {
+        page = page > 1 ? page - 1 : 0;
+        return PageRequest.of(page, size, Sort.Direction.DESC, "createdAt");
     }
 
 }
